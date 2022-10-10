@@ -72,17 +72,17 @@
 
 Сохраняем результат в файл jiraTaskWorklog.tsv:
 
-    В окне DataGrip в блоке Result нажимаем на выпадающее меню "TSV":
-    ![В окне DataGrip в блоке Result нажимаем на выпадающее меню TSV](https://github.com/aura-bss/CoS/blob/master/Screenshot1.png "Screenshot1.png")
+В окне DataGrip в блоке Result нажимаем на выпадающее меню "TSV":
+![В окне DataGrip в блоке Result нажимаем на выпадающее меню TSV](https://github.com/aura-bss/CoS/blob/master/pictures/Screenshot1.png "Screenshot1.png")
 
-    Далее нажимаем на пункт меню "Configure CSV Formats...":
-    ![Нажимаем на пункт меню Configure CSV Formats](https://github.com/aura-bss/CoS/blob/master/Screenshot1.png "Screenshot2.png")
+Далее нажимаем на пункт меню "Configure CSV Formats...":
+![Нажимаем на пункт меню Configure CSV Formats](https://github.com/aura-bss/CoS/blob/master/pictures/Screenshot2.png "Screenshot2.png")
 
-    Далее выпадающем меню "Value separator" выбираем пункт "Pipe" нажимаем на кнопку ОК:
-    ![В выпадающем меню Value separator выбираем пункт Pipe](https://github.com/aura-bss/CoS/blob/master/Screenshot1.png "Screenshot3.png")
+Далее выпадающем меню "Value separator" выбираем пункт "Pipe" нажимаем на кнопку ОК:
+![В выпадающем меню Value separator выбираем пункт Pipe](https://github.com/aura-bss/CoS/blob/master/pictures/Screenshot3.png "Screenshot3.png")
 
-    В окне DataGrip в блоке Result нажимаем на кнопку "Export Data". Далее в поле "Output file" в качестве места сохранения выбираем директорию data в репозитории, указываем имя файла jiraTaskWorklog.tsv и нажимаем кнопку "Export to file":
-    ![В окне DataGrip в блоке Result нажимаем на кнопку Export Data](https://github.com/aura-bss/CoS/blob/master/Screenshot1.png "Screenshot4.png")
+В окне DataGrip в блоке Result нажимаем на кнопку "Export Data". Далее в поле "Output file" в качестве места сохранения выбираем директорию data в репозитории, указываем имя файла jiraTaskWorklog.tsv и нажимаем кнопку "Export to file":
+![В окне DataGrip в блоке Result нажимаем на кнопку Export Data](https://github.com/aura-bss/CoS/blob/master/pictures/Screenshot4.png "Screenshot4.png")
 
 В консоли Linux переходим в директорию с репозиторием и выполняем команду:
 
