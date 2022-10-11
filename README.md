@@ -19,9 +19,9 @@
 
     git clone https://github.com/repo1.git
 
-При необходимости повторяем то же действие с другими репозиториями
+При необходимости повторяем то же действие с другими репозиториями.
 
-Вместо `repo1 repo2` указываем имена всех полученных репозиториев через пробел и выполняем команду:
+Далее выполняем команду. Вместо `repo1 repo2` указываем имена всех полученных репозиториев через пробел:
 
     for CI in repo1 repo2 ; do cd $CI ; git remote update -p ; git pull ; cd .. ; done
 
@@ -33,7 +33,7 @@
 
     time cat ../data/allCommits.csv | perl -ne 'printf "%s\n", join ";", ( split /;/)[0,1]' | sort -u > ../data/repoCommits.csv
 
-В консоли в этой же директории repos выполняем команду: pwd и копируем ответ в буфер обмена
+В консоли в этой же директории repos выполняем команду: `pwd` и копируем ответ в буфер обмена
 
 Открываем файл `../files.rb`
 
@@ -53,12 +53,13 @@
 
 Устанавливаем DataGrip для работы с запросами к БД:
 
-    Инструкция: [https://www.jetbrains.com/datagrip/download/#section=linux](https://www.jetbrains.com/datagrip/download/#section=linux)
+Инструкция: [https://www.jetbrains.com/datagrip/download/#section=linux](https://www.jetbrains.com/datagrip/download/#section=linux)
 
-    При первом запуске программы выбираем тип лицензирования.
-    Далее настраиваем подключение к БД Oracle
+При первом запуске программы выбираем тип лицензирования.
 
-Открываем консоль DataGrip и и выполняем запрос:
+Далее вручную настраиваем подключение к БД Oracle.
+
+Открываем DataGrip, подключаемся к БД, открываем консоль и и выполняем запрос:
 
     SELECT p.PKEY, p.PNAME, p.PKEY || '-' || i.ISSUENUM task, t.PNAME,
     ROUND( sum( w.TIMEWORKED ) / 3600.0, 2 ) worklog, i.SUMMARY
@@ -84,7 +85,7 @@
 В окне DataGrip в блоке Result нажимаем на кнопку "Export Data". Далее в поле "Output file" в качестве места сохранения выбираем директорию data в репозитории, указываем имя файла jiraTaskWorklog.tsv и нажимаем кнопку "Export to file":
 ![В окне DataGrip в блоке Result нажимаем на кнопку Export Data](https://github.com/aura-bss/CoS/blob/master/pictures/Screenshot4.png "Screenshot4.png")
 
-В консоли Linux переходим в директорию с репозиторием и выполняем команду:
+В консоли Linux переходим в директорию с репозиторием CoS и выполняем команду:
 
     time cat data/jiraTaskWorklog.tsv | perl -pe ' s|"||g ' | perl -pe " s|'||g " | perl -ne ' printf "%s", join( "|", map { s{\|}{ }g; $_ } split( /\|/,$_,6 ) ) ' > data/jiraTaskWorklog2.csv
 
@@ -114,7 +115,7 @@
 
 Повторяем шаги сохранения в файл TSV из предыдущих пунктов. В качестве имени файла указываем jiraActivity.tsv
 
-В репозитории создаём пустой файл для БД SQLite:
+В репозитории CoS создаём пустой файл для БД SQLite:
 
     touch timeFiles.db
 
@@ -136,7 +137,7 @@
 
 В консоли выполняем по очереди строки запроса:
 
-    ALTER TABLE jiraActivity ADD activityGroup VARCHAR ;
+    ALTER TABLE jiraActivity ADD activityGroup VARCHAR;
     UPDATE jiraActivity SET activityGroup = 'Развитие';
     UPDATE jiraActivity SET activityGroup = 'Саппорт' WHERE activity in( 'Лицензии.Саппорт', 'Дефеĸты', 'Внедрение' );
 
@@ -144,15 +145,15 @@
 
     sqlite3 timeFiles.db -csv -separator '|' 'create table rmiSubsKeys ( mask varchar primary key, subName varchar, subId varchar )'
 
-ДЛЯ ЭТОЙ КОМАНДЫ НЕТ ФАЙЛА:
+ДЛЯ ЭТОЙ КОМАНДЫ НЕТ ФАЙЛА rmiSubsKyes.tsv:
 
     sqlite3 -csv -separator '|' timeFiles.db '.import rmiSubsKyes.tsv rmiSubsKeys'
 
-ДЛЯ ЭТОЙ КОМАНДЫ НЕТ ФАЙЛА:
+ДЛЯ ЭТОЙ КОМАНДЫ НЕТ ФАЙЛА РучныеКлючиПодсистем.csv:
 
     cat ~/Tmp/РучныеКлючиПодсистем.csv | perl -ne ' ($_,$key,$name,$id) = split /;/; printf qq{INSERT OR REPLACE INTO rmiSubsKeys VALUES ("%s","%s","%s");\n}, $key, $name, $id if $key and $name; ' | sqlite3 -csv -separator ';' timeFiles.db
 
-Создаём таблицы в БД и импортируем в них данные:
+Создаём таблицы gitCommits, gitFiles в БД и импортируем в них данные:
 
     sqlite3 timeFiles.db -csv -separator ';' 'create table gitCommits ( repo varchar, chash varchar primary key , date varchar, datetime bigint, key varchar, author varchar, subject blob )'
 
@@ -162,11 +163,11 @@
     
     sqlite3 -csv -separator ';' timeFiles.db '.import data/allFiles2.csv gitFiles'
 
-Создаём таблицу gitCommitsAM, далее с помощью запроса к таблице gitCommits для сбора коммитов у ĸоторых есть задачи и файлы с суммой добавленых и удаленных строĸ:
+Создаём таблицу gitCommitsAM, далее с помощью запроса к таблице gitCommits выполняем сбор коммитов у ĸоторых есть задачи и файлы с суммой добавленых и удаленных строĸ:
 
     sqlite3 timeFiles.db 'CREATE TABLE gitCommitsAM AS SELECT c.repo,c.chash,c.date,c.key,c.author,SUM(added) added, SUM(deleted) deleted, COUNT(DISTINCT f.repo || f.file ) files FROM gitCommits c JOIN jiraTaskWorkLog j USING ( key ) JOIN gitFiles f USING ( chash ) WHERE j.hours > 0 GROUP BY 1,2,3,4,5;'
 
-Создаём таблицу jiraTaskWorkLogAM, далее с помощью запроса к таблице jiraTaskWorkLog для сбора задач у ĸоторых есть ĸоммиты с файлами, с числом ĸоммитов, файлов, добавленных и удаленных строĸ: 
+Создаём таблицу jiraTaskWorkLogAM, далее с помощью запроса к таблице jiraTaskWorkLog выполняем сбор задач у ĸоторых есть ĸоммиты с файлами, с числом ĸоммитов, файлов, добавленных и удаленных строĸ: 
 
     sqlite3 timeFiles.db 'CREATE TABLE jiraTaskWorkLogAM AS SELECT j.pname,j.pkey,j.key,j.type,j.hours, COUNT(DISTINCT chash) commits, SUM(f.added) added, SUM(f.deleted) deleted, COUNT( DISTINCT f.repo||f.file) files FROM jiraTaskWorkLog j JOIN gitCommitsAM c USING ( key ) JOIN gitFiles f USING ( chash ) GROUP BY 1,2,3,4;'
 
@@ -182,11 +183,11 @@
 
     scp -P 2277 treeView.json web-server:/var/www/html/treeView.json
 
-Создаём таблицу dateSubsytem, далее с помощью запроса к таблице gitFilesAM для выборки дней ĸогда изменялись подсистемы (для метоĸ связности и частотности):
+Создаём таблицу dateSubsytem, далее с помощью запроса к таблице gitFilesAM выполняем выборку дней ĸогда изменялись подсистемы (для метоĸ связности и частотности):
 
     sqlite3 timeFiles.db 'CREATE TABLE dateSubsytem AS SELECT date,subName FROM gitFilesAM GROUP BY 2,1;'
 
-Создаём таблицу taskSubsytem, далее с помощью запроса к таблице gitFilesAM для выборки задач в рамĸах ĸоторых менялась подсистема, с ĸалендарными датами:
+Создаём таблицу taskSubsytem, далее с помощью запроса к таблице gitFilesAM выполняем выборку задач в рамĸах ĸоторых менялась подсистема, с ĸалендарными датами:
 
     sqlite3 timeFiles.db 'CREATE TABLE taskSubsytem AS SELECT key,subName,min(date) f, max(date) t FROM gitFilesAM GROUP BY 1,2 ;'
 
@@ -214,11 +215,11 @@
 
     sqlite3 timeFiles.db -csv -separator ',' 'create table subsystemTaskCouple ( subNameA varchar, subNameB varchar, taskCouple double )'
 
-Выполняем SQL-запрос для выборки совместности подсистем по задачам:
+Выполняем запрос для выборки совместности подсистем по задачам:
 
     sqlite3 timeFiles.db -csv -separator ';' "WITH cnt(subName,cnt) AS ( SELECT subName,count(distinct key) from taskSubsytem GROUP BY 1) SELECT t1.subName,t2.subName,1.0 * 19892 * count(distinct t2.key) / ( cnt1.cnt * cnt2.cnt ) FROM taskSubsytem t1 JOIN taskSubsytem t2 ON ( t1.key=t2.key and t1.subName != t2.subName ) JOIN cnt cnt1 ON ( t1.subName=cnt1.subName) JOIN cnt cnt2 ON( t2.subName=cnt2.subName ) WHERE cnt1.cnt >= 100 and cnt2.cnt >= 100 GROUP BY 1,2" | sqlite3 -csv -separator ';' timeFiles.db ".import '|cat -' subsystemTaskCouple"
 
-Создаём таблицу systemFullCouple, далее с помощью запроса к таблице subsystemTimeCouple для выборки совместности подсистем по времени и задачам, с нормированием и среднеĸвадратичесĸой дистанцией:
+Создаём таблицу systemFullCouple, далее с помощью запроса к таблице subsystemTimeCouple выполняем выборку совместности подсистем по времени и задачам, с нормированием и среднеĸвадратичесĸой дистанцией:
 
     sqlite3 timeFiles.db -csv -separator ',' 'CREATE TABLE systemFullCouple AS SELECT subNameA, subNameB, SQRT( 1.0 * ( coalesce(timeCouple,0) * coalesce(timeCouple,0) + coalesce(taskCouple,0) / 70 * coalesce(taskCouple,0) / 70 ) / 2 ) FROM subsystemTimeCouple LEFT JOIN subsystemTaskCouple USING ( subNameA, subNameB ) ORDER BY 3 DESC'
 
