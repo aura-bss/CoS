@@ -1,4 +1,4 @@
-## Запуск на операционных системах семейства Linux (Debian, Ubuntu)
+## Запуск на операционных системах семейства Linux (Debian, Ubuntu, MacOS)
 
 Открываем консоль (терминал)
 
@@ -145,11 +145,11 @@
 
     sqlite3 timeFiles.db -csv -separator '|' 'create table rmiSubsKeys ( mask varchar primary key, subName varchar, subId varchar )'
 
-ДЛЯ ЭТОЙ КОМАНДЫ НЕТ ФАЙЛА rmiSubsKyes.tsv:
+Файл rmiSubsKyes.tsv формируется на основании подсистем Release Info Manager
 
     sqlite3 -csv -separator '|' timeFiles.db '.import rmiSubsKyes.tsv rmiSubsKeys'
 
-ДЛЯ ЭТОЙ КОМАНДЫ НЕТ ФАЙЛА РучныеКлючиПодсистем.csv:
+Исходный файл формируется на базе экспертного соответствия модулей и подсистем
 
     cat ~/Tmp/РучныеКлючиПодсистем.csv | perl -ne ' ($_,$key,$name,$id) = split /;/; printf qq{INSERT OR REPLACE INTO rmiSubsKeys VALUES ("%s","%s","%s");\n}, $key, $name, $id if $key and $name; ' | sqlite3 -csv -separator ';' timeFiles.db
 
@@ -195,7 +195,7 @@
 
     sqlite3 timeFiles.db -csv -separator ',' 'create table frequencyClusterSubsystem ( subName varchar primary key, frequencyCluster integer, stableCluster integer, tasks integer,days integer,stable_days integer )'
 
-ДЛЯ ЭТОЙ КОМАНДЫ НЕТ ФАЙЛА cluster_frequency.rb:
+Формирование кластеров по частотности:
 
     sqlite3 -csv -separator ';' timeFiles.db "WITH ddd(subName,days,ldate) AS (SELECT subName, count(distinct date), max(date) FROM dateSubsytem GROUP BY 1 ), ttt(subName,tasks,tdate ) AS ( SELECT subName,count(distinct key),max(t) from taskSubsytem group by 1 ) SELECT subName,tasks,days,ldate from ddd join ttt USING ( subName ) order by tasks desc" | ruby cluster_frequency.rb | sqlite3 -csv -separator ';' timeFiles.db ".import '|cat -' frequencyClusterSubsystem"
 
@@ -203,7 +203,7 @@
 
     sqlite3 timeFiles.db -csv -separator ',' 'create table subsystemTimeCouple ( subNameA varchar, subNameB varchar, timeCouple double )'
 
-ДЛЯ ЭТОЙ КОМАНДЫ НЕТ ФАЙЛА subCorrelation2.rb:
+Формирование кластеров по связности:
 
     ruby subCorrelation2.rb | sqlite3 -csv -separator ';' timeFiles.db ".import '|cat -' subsystemTimeCouple"
 
@@ -227,11 +227,11 @@
 
     sqlite3 timeFiles.db -csv -separator ',' 'create table fullClusterSubsystem ( subName varchar primary key, joinCluster integer )'
 
-ДЛЯ ЭТОЙ КОМАНДЫ НЕТ ФАЙЛА kmedoidsFull.rb:
+Формирование кластеров на базе предыдущи метрик:
 
     ruby kmedoidsFull.rb | sqlite3 -csv -separator ';' timeFiles.db ".import '|cat -' fullClusterSubsystem"
 
-ДЛЯ ЭТОЙ КОМАНДЫ НЕТ ФАЙЛА kmedoidsLast.rb:
+Формирование окончательной кластеризации:
 
     sqlite3 timeFiles.db -csv -separator ';' "SELECT subName, frequencyCluster, stableCluster, COALESCE(joinCluster,13), COALESCE(usageCluster,7) FROM frequencyClusterSubsystem LEFT JOIN fullClusterSubsystem USING ( subName ) LEFT JOIN usageClusterSubsystem using ( subName ) ORDER BY frequencyCluster + stableCluster + COALESCE(joinCluster,13), COALESCE(usageCluster,7)" | ruby kmedoidsLast.rb
 
@@ -239,16 +239,15 @@
 
     sqlite3 timeFiles.db -csv -separator ',' 'create table lastDevSupportClusterSubsystem ( subName varchar primary key, cluster integer )'
 
-Кластеризация развитие и сопровождение
-ДЛЯ ЭТОЙ КОМАНДЫ НЕТ ФАЙЛА kmedoidsLast.rb:
-
+Кластеризация по данным развития и сопровождения
+ 
     /usr/local/opt/sqlite/bin/sqlite3 timeFiles.db -csv -separator ';' "SELECT subName, frequencyCluster, stableCluster, COALESCE(joinCluster,13), COALESCE(usageCluster,7) FROM frequencyClusterSubsystem LEFT JOIN fullClusterSubsystem USING ( subName ) LEFT JOIN usageClusterSubsystem using ( subName ) ORDER BY frequencyCluster + stableCluster + COALESCE(joinCluster,13), COALESCE(usageCluster,7)" | ruby kmedoidsLast.rb | /usr/local/opt/sqlite/bin/sqlite3 -csv -separator ';' timeFiles.db ".import '|cat -' lastDevSupportClusterSubsystem"
 
 Создаём таблицу lastClusterSubsystem:
 
     sqlite3 timeFiles.db -csv -separator ',' 'create table lastClusterSubsystem ( subName varchar primary key, cluster integer )'
 
-ДЛЯ ЭТОЙ КОМАНДЫ НЕТ ФАЙЛА kmedoidsLast.rb:
+Кластеризация по данным развития и сопровождения
 
     sqlite3 timeFiles.db -csv -separator ';' "SELECT subName, frequencyCluster, stableCluster, COALESCE(joinCluster,13), COALESCE(usageCluster,7) FROM frequencyClusterSubsystem LEFT JOIN fullClusterSubsystem USING ( subName ) LEFT JOIN usageClusterSubsystem using ( subName ) ORDER BY frequencyCluster + stableCluster + COALESCE(joinCluster,13), COALESCE(usageCluster,7)" | ruby kmedoidsLast.rb | /usr/local/opt/sqlite/bin/sqlite3 -csv -separator ';' timeFiles.db ".import '|cat -' lastClusterSubsystem"
 
@@ -256,6 +255,6 @@
 
     sqlite3 timeFiles.db -csv -separator ',' 'create table lastLegislationClusterSubsystem ( subName varchar primary key, cluster integer )'
 
-ДЛЯ ЭТОЙ КОМАНДЫ НЕТ ФАЙЛА kmedoidsLast.rb:
+Финальная кластризация по проектам регуляторки
 
     sqlite3 timeFiles.db -csv -separator ';' "SELECT subName, frequencyCluster, stableCluster, COALESCE(joinCluster,13), COALESCE(usageCluster,7) FROM frequencyClusterSubsystem LEFT JOIN fullClusterSubsystem USING ( subName ) LEFT JOIN usageClusterSubsystem using ( subName ) ORDER BY frequencyCluster + stableCluster + COALESCE(joinCluster,13), COALESCE(usageCluster,7)" | ruby kmedoidsLast.rb | sqlite3 -csv -separator ';' timeFiles.db ".import '|cat -' lastLegislationClusterSubsystem"
